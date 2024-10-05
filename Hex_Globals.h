@@ -27,6 +27,7 @@
 #define	cLR			3
 #define	cLM			4
 #define	cLF			5
+#define MANDIBLE_INDEX 6
 
 #define	WTIMERTICSPERMSMUL  	64	// BAP28 is 16mhz need a multiplyer and divider to make the conversion with /8192
 #define WTIMERTICSPERMSDIV  	125 // 

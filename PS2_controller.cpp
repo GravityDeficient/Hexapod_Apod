@@ -351,28 +351,33 @@ void InputController::ControlInput(void)
                 g_BodyYShift = (-(ps2x.Analog(PSS_RY) - 128)/2);
             }
 
-            //[Single leg functions]
-            // Mandible mode
+            //[Single leg functions and Mandible mode]
             if (ControlMode == SINGLELEGMODE) {
               
-              /*
+                //Switch mandible mode on/off
                 //Switch leg for single leg control
                 if (ps2x.ButtonPressed(PSB_SELECT)) { // Select Button Test
                     MSound (SOUND_PIN, 1, 50, 2000);  //sound SOUND_PIN, [50\4000]
-                    if (g_InControlState.SelectedLeg<5)
+                    if (g_InControlState.SelectedLeg < 6)
                         g_InControlState.SelectedLeg = g_InControlState.SelectedLeg+1;
                     else
-                        g_InControlState.SelectedLeg=0;
-                        */
-                //}
+                        g_InControlState.SelectedLeg = 0;
+                }
                 
-                g_InControlState.ManPos.x = -(ps2x.Analog(PSS_RY) - 128) * 2; // Right stick up/down; mandible up/down
-                g_InControlState.ManPos.y = (ps2x.Analog(PSS_RX) - 128) * 2; // Right stick left/right; mandible left/right
-                g_InControlState.ManPos.z = (ps2x.Analog(PSS_LX) - 128) * 2; // Left stick left/right; mandible rotate CCW/CW
+                // Check if the Mandible is selected (index 6)
+                if (g_InControlState.SelectedLeg == MANDIBLE_INDEX) {
+                    g_InControlState.ManPos.x = -(ps2x.Analog(PSS_RY) - 128) * 2; // Right stick up/down; mandible up/down
+                    g_InControlState.TailPos.x = -(ps2x.Analog(PSS_RY) - 128) * 2; // Right stick up/down; tail left/right
 
-                //g_InControlState.SLLeg.x= (ps2x.Analog(PSS_LX) - 128)/2; //Left Stick Right/Left
-                //g_InControlState.SLLeg.y= (ps2x.Analog(PSS_RY) - 128)/10; //Right Stick Up/Down
-                //g_InControlState.SLLeg.z = (ps2x.Analog(PSS_LY) - 128)/2; //Left Stick Up/Down
+                    g_InControlState.ManPos.y = (ps2x.Analog(PSS_RX) - 128) * 2; // Right stick left/right; mandible left/right
+                    g_InControlState.TailPos.y = (ps2x.Analog(PSS_RX) - 128) * 2; // Right stick left/right; tail up/down
+                    
+                    g_InControlState.ManPos.z = (ps2x.Analog(PSS_LX) - 128) * 2; // Left stick left/right; mandible rotate CCW/CW
+                } else {
+                    g_InControlState.SLLeg.x= (ps2x.Analog(PSS_LX) - 128)/2; //Left Stick Right/Left
+                    g_InControlState.SLLeg.y= (ps2x.Analog(PSS_RY) - 128)/10; //Right Stick Up/Down
+                    g_InControlState.SLLeg.z = (ps2x.Analog(PSS_LY) - 128)/2; //Left Stick Up/Down
+                }
 
                 // Hold single leg in place
                 if (ps2x.ButtonPressed(PSB_R2)) { // R2 Button Test

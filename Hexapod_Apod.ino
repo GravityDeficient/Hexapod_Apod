@@ -632,7 +632,8 @@ void StartUpdateServos()
     }
     
     g_ServoDriver.OutputServoInfoForMandibles(g_InControlState.ManPos.x, g_InControlState.ManPos.y, g_InControlState.ManPos.z);
-    g_ServoDriver.OutputServoInfoForTails(35,-750);
+    g_ServoDriver.OutputServoInfoForTails(g_InControlState.TailPos.x, g_InControlState.TailPos.y);
+    // g_ServoDriver.OutputServoInfoForTails(35,-750);
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -703,9 +704,6 @@ bool CheckVoltage() {
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SingleLegControl(void)
 {
-  // TODO: use one or the other, or both
-  MandibleControl();
-  return;
 
   //Check if all legs are down
     AllDown = (LegPosY[cRF]==(short)pgm_read_word(&cInitPosY[cRF])) && 
@@ -728,9 +726,8 @@ void SingleLegControl(void)
                 LegPosZ[PrevSelectedLeg] = (short)pgm_read_word(&cInitPosZ[PrevSelectedLeg]);
             }
         } else if (!g_InControlState.fSLHold) {
-            LegPosY[g_InControlState.SelectedLeg] = LegPosY[g_InControlState.SelectedLeg]+g_InControlState.SLLeg.y;
-            LegPosX[g_InControlState.SelectedLeg] = (short)pgm_read_word(&cInitPosX[g_InControlState.SelectedLeg])+g_InControlState.SLLeg.x;
-            LegPosZ[g_InControlState.SelectedLeg] = (short)pgm_read_word(&cInitPosZ[g_InControlState.SelectedLeg])+g_InControlState.SLLeg.z;     
+            MandibleControl();
+            TailControl();
         }
     } else {//All legs to init position
         if (!AllDown) {
@@ -746,15 +743,24 @@ void SingleLegControl(void)
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-//[SINGLE LEG CONTROL]
+//[Mandible CONTROL]
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MandibleControl(void)
 {
-  LegPosY[g_InControlState.SelectedLeg] = LegPosY[g_InControlState.SelectedLeg]+g_InControlState.SLLeg.y;
-  LegPosX[g_InControlState.SelectedLeg] = (short)pgm_read_word(&cInitPosX[g_InControlState.SelectedLeg])+g_InControlState.SLLeg.x;
-  LegPosZ[g_InControlState.SelectedLeg] = (short)pgm_read_word(&cInitPosZ[g_InControlState.SelectedLeg])+g_InControlState.SLLeg.z;     
+    LegPosY[g_InControlState.SelectedLeg] = LegPosY[g_InControlState.SelectedLeg]+g_InControlState.SLLeg.y;
+    LegPosX[g_InControlState.SelectedLeg] = (short)pgm_read_word(&cInitPosX[g_InControlState.SelectedLeg])+g_InControlState.SLLeg.x;
+    LegPosZ[g_InControlState.SelectedLeg] = (short)pgm_read_word(&cInitPosZ[g_InControlState.SelectedLeg])+g_InControlState.SLLeg.z;      
 }
 
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//[Tail CONTROL]
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void TailControl(void)
+{
+    LegPosY[g_InControlState.SelectedLeg] = LegPosY[g_InControlState.SelectedLeg]+g_InControlState.SLLeg.y;
+    LegPosX[g_InControlState.SelectedLeg] = (short)pgm_read_word(&cInitPosX[g_InControlState.SelectedLeg])+g_InControlState.SLLeg.x;
+    LegPosZ[g_InControlState.SelectedLeg] = (short)pgm_read_word(&cInitPosZ[g_InControlState.SelectedLeg])+g_InControlState.SLLeg.z;      
+}
 
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
