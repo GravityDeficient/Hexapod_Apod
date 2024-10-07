@@ -32,6 +32,10 @@ typedef struct _Coord3D {
     long      z;
 } COORD3D;
 
+typedef struct _Coord2D {
+    long      x;
+    long      y;
+} COORD2D;
 
 //==============================================================================
 // Class ControlState: The purpose of the Control State object is to encapsulate
@@ -51,7 +55,7 @@ typedef struct _InControlState {
 //[gait]
      byte			GaitType;			//Gait type
 
-     short			LegLiftHeight;		//Current Travel height
+     short		LegLiftHeight;		//Current Travel height
      COORD3D        TravelLength;            // X-Z or Length, Y is rotation.
 
 //[Single Leg Control]
@@ -65,19 +69,19 @@ typedef struct _InControlState {
 
 //[TIMING]
      byte			InputTimeDelay;	//Delay that depends on the input to get the "sneaking" effect
-     word			SpeedControl;	//Adjustible Delay
+     word			SpeedControl;	     //Adjustible Delay
      
 //[Mandible Control]
 // Z+ points into the robot body
 // Y+ points up into the air
 // X+ points to the right
-     COORD3D       ManPos;
-     byte          ManClos;
+     COORD3D       ManPos;    // Position of the mandibles
+     COORD2D       ManClos;   // Open and close the mandibles
      
 //[Tail Control]
-//Y pans the tail from side to side 
-//Z raies and lowers the tail 
-    COORD3D    TailPos; 
+//X pans the tail from side to side 
+//Y raies and lowers the tail 
+    COORD2D    TailPos; 
   
 } INCONTROLSTATE;
 

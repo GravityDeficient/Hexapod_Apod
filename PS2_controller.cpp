@@ -3,9 +3,10 @@
 //Description: Phoenix, control file.
 //The control input subroutine for the phoenix software is placed in this file.
 //Can be used with V2.0 and above
-//Software Version: 4.0
-//Last Updated Date: April 10th 2015 
-//Programmers:  Eric Shi (tronicsos) (Implemented 24 DoF Apod Hexapod code)
+//Software Version: 4.1
+//Last Updated Date: October 5th 2024 
+//Programmers:  Shane Easton (GravityDeficient) (Implimented Mandible and Tail code)
+//              Eric Shi (tronicsos) (Implemented 24 DoF Apod Hexapod code)
 //              Jeroen Janssen [aka Xan]
 //              Kurt Eckhardt(KurtE) converted to C and Arduino
 //
@@ -180,7 +181,7 @@ void InputController::ControlInput(void)
             // [SWITCH MODES]
     
              //Translate mode
-            if (ps2x.ButtonPressed(PSB_L1)) {// L1 Button Test
+            if (ps2x.ButtonPressed(PSB_L1) && ControlMode != SINGLELEGMODE) {// L1 Button Test
                 #ifdef debugConsoleOn
                   DBGSerial.write("[PS2 Control Action]: L1 Button Triggered - Entering Translation Mode\n");
                 #endif 
@@ -215,11 +216,14 @@ void InputController::ControlInput(void)
             if (ps2x.ButtonPressed(PSB_CIRCLE)) {// O - Circle Button Test
                 if (abs(g_InControlState.TravelLength.x)<cTravelDeadZone && abs(g_InControlState.TravelLength.z)<cTravelDeadZone 
                         && abs(g_InControlState.TravelLength.y*2)<cTravelDeadZone )   {
-                    //Sound SOUND_PIN,[50\4000]
+                                #ifdef debugConsoleOn
+                    DBGSerial.write("[PS2 Control Action]: Circle Button Triggered - Entering Single Leg Mode\n");
+                    #endif
+                    MSound(SOUND_PIN, 1, 50, 2000);  //sound SOUND_PIN, [50\4000]
                     if (ControlMode != SINGLELEGMODE) {
                         ControlMode = SINGLELEGMODE;
                             if (g_InControlState.SelectedLeg == 255)  //Select leg if none is selected
-                                g_InControlState.SelectedLeg=cRF; //Startleg
+                                g_InControlState.SelectedLeg = MANDIBLE_INDEX; //Startleg
                     } else {
                         ControlMode = WALKMODE;
                         g_InControlState.SelectedLeg=255;
@@ -258,20 +262,20 @@ void InputController::ControlInput(void)
                     g_BodyYOffset = 35;
             }
 
-            if (ps2x.ButtonPressed(PSB_PAD_UP))// D-Up - Button Test
+            if (ps2x.Button(PSB_PAD_UP))// D-Up - Button Test
                 g_BodyYOffset += 10;
 
-            if (ps2x.ButtonPressed(PSB_PAD_DOWN))// D-Down - Button Test
+            if (ps2x.Button(PSB_PAD_DOWN))// D-Down - Button Test
                 g_BodyYOffset -= 10;
 
-            if (ps2x.ButtonPressed(PSB_PAD_RIGHT)) { // D-Right - Button Test
+            if (ps2x.Button(PSB_PAD_RIGHT)) { // D-Right - Button Test
                 if (g_InControlState.SpeedControl>0) {
                     g_InControlState.SpeedControl = g_InControlState.SpeedControl - 50;
                     MSound(SOUND_PIN, 1, 50, 2000);  //sound SOUND_PIN, [50\4000]
                 }
             }
 
-            if (ps2x.ButtonPressed(PSB_PAD_LEFT)) { // D-Left - Button Test
+            if (ps2x.Button(PSB_PAD_LEFT)) { // D-Left - Button Test
                 if (g_InControlState.SpeedControl<2000 ) {
                     g_InControlState.SpeedControl = g_InControlState.SpeedControl + 50;
                     MSound(SOUND_PIN, 1, 50, 2000);  //sound SOUND_PIN, [50\4000]
@@ -300,7 +304,7 @@ void InputController::ControlInput(void)
                     MSound(SOUND_PIN, 1, 50, 2000);  //sound SOUND_PIN, [50\4000]
                     DoubleHeightOn = !DoubleHeightOn;
                     if (DoubleHeightOn)
-                        g_InControlState.LegLiftHeight = 80;
+                        g_InControlState.LegLiftHeight = 100;
                     else
                         g_InControlState.LegLiftHeight = 50;
                 }
@@ -341,6 +345,12 @@ void InputController::ControlInput(void)
                 g_InControlState.BodyPos.z = -(ps2x.Analog(PSS_LY) - 128)/3;
                 g_InControlState.BodyRot1.y = (ps2x.Analog(PSS_RX) - 128)*2;
                 g_BodyYShift = (-(ps2x.Analog(PSS_RY) - 128)/2);
+
+                g_InControlState.ManPos.x = (ps2x.Analog(PSS_RY) - 128) * 2; // Right stick up/down; mandible up/down
+                g_InControlState.ManPos.z = -(ps2x.Analog(PSS_LX) - 128) * 2; // Left stick left/right; mandible rotate CCW/CW
+
+                g_InControlState.TailPos.x = (ps2x.Analog(PSS_LY) - 128) * 2; // Right stick up/down; tail left/right
+                g_InControlState.TailPos.y = (ps2x.Analog(PSS_RX) - 128) * 2; // Right stick left/right; tail up/down
             }
 
             //[Rotate functions]
@@ -349,6 +359,8 @@ void InputController::ControlInput(void)
                 g_InControlState.BodyRot1.y = (ps2x.Analog(PSS_RX) - 128)*2;
                 g_InControlState.BodyRot1.z = (ps2x.Analog(PSS_LX) - 128);
                 g_BodyYShift = (-(ps2x.Analog(PSS_RY) - 128)/2);
+
+                g_InControlState.ManPos.z = -(ps2x.Analog(PSS_LX) - 128) * 2; // Left stick left/right; mandible rotate CCW/CW
             }
 
             //[Single leg functions and Mandible mode]
@@ -366,6 +378,23 @@ void InputController::ControlInput(void)
                 
                 // Check if the Mandible is selected (index 6)
                 if (g_InControlState.SelectedLeg == MANDIBLE_INDEX) {
+                    if (ps2x.Button(PSB_R1)) { // R1 Button Test
+                        g_InControlState.ManClos.x += 10;  // Increment by a smaller amount
+                        if (g_InControlState.ManClos.x > cMandLeftMAX1)  // Set a reasonable upper limit based on the range
+                            g_InControlState.ManClos.x = cMandLeftMAX1;
+                        g_InControlState.ManClos.y += 10;  // Increment by a smaller amount
+                        if (g_InControlState.ManClos.y > cMandRightMAX1)  // Set a reasonable upper limit based on the range
+                            g_InControlState.ManClos.y = cMandRightMAX1;
+                    }
+                    if (ps2x.Button(PSB_L1)) { // L1 Button Test
+                        g_InControlState.ManClos.x -= 10;  // Decrement by a smaller amount
+                        if (g_InControlState.ManClos.x < cMandLeftMIN1)  // Set a reasonable lower limit based on the range
+                            g_InControlState.ManClos.x = cMandLeftMIN1;
+                        g_InControlState.ManClos.y -= 10;  // Decrement by a smaller amount
+                        if (g_InControlState.ManClos.y < cMandRightMIN1)  // Set a reasonable lower limit based on the range
+                            g_InControlState.ManClos.y = cMandRightMIN1;
+                    }
+
                     g_InControlState.ManPos.x = -(ps2x.Analog(PSS_RY) - 128) * 2; // Right stick up/down; mandible up/down
                     g_InControlState.TailPos.x = -(ps2x.Analog(PSS_RY) - 128) * 2; // Right stick up/down; tail left/right
 
@@ -374,9 +403,9 @@ void InputController::ControlInput(void)
                     
                     g_InControlState.ManPos.z = (ps2x.Analog(PSS_LX) - 128) * 2; // Left stick left/right; mandible rotate CCW/CW
                 } else {
-                    g_InControlState.SLLeg.x= (ps2x.Analog(PSS_LX) - 128)/2; //Left Stick Right/Left
-                    g_InControlState.SLLeg.y= (ps2x.Analog(PSS_RY) - 128)/10; //Right Stick Up/Down
-                    g_InControlState.SLLeg.z = (ps2x.Analog(PSS_LY) - 128)/2; //Left Stick Up/Down
+                    g_InControlState.SLLeg.x= (ps2x.Analog(PSS_LX) - 128) / 2; //Left Stick Right/Left
+                    g_InControlState.SLLeg.y= (ps2x.Analog(PSS_RY) - 128) / 10; //Right Stick Up/Down
+                    g_InControlState.SLLeg.z = (ps2x.Analog(PSS_LY) - 128) / 2; //Left Stick Up/Down
                 }
 
                 // Hold single leg in place

@@ -212,11 +212,11 @@
 
 //Mechanical limits of Right Mandible
 #define cMandRightMAX1	600
-#define cMandRightMIN1	-280
+#define cMandRightMIN1	-360
 
 //Mechanical limits of Left Mandible (reversed in SEQ, not here!)
 #define cMandLeftMAX1	600
-#define cMandLeftMIN1	-280
+#define cMandLeftMIN1	-360
 
 //Mechanical limits of Abdomen Tilt (tail up and down)
 #define cAbdomTiltMAX1 	620
@@ -295,7 +295,6 @@
 #define CHexInitXZSin60  69    // sin(60) = .866
 #define CHexInitY	15 //30
 
-
 #define cRRInitPosX     83      //Start positions of the Right Rear leg
 #define cRRInitPosY     CHexInitY
 #define cRRInitPosZ     83
@@ -319,6 +318,7 @@
 #define cLFInitPosX     83      //Start positions of the Left Front leg
 #define cLFInitPosY     CHexInitY
 #define cLFInitPosZ     -83
+
 //--------------------------------------------------------------------
 //[Tars factors used in formula to calc Tarsus angle relative to the ground]
 #define cTarsConst	720	//4DOF ONLY
@@ -327,6 +327,4 @@
 #define cTarsFactorB	60	//4DOF ONLY
 #define cTarsFactorC	50	//4DOF ONLY
 
-#define MandRightClosedPWM  1500 //Right Mandible
-#define cMandLeftClosedPWM 1500	//Left Mandible (reversed in SEQ, not here!)
 

@@ -253,15 +253,14 @@ void ServoDriver::OutputServoInfoForLeg(byte LegIndex, short sCoxaAngle1, short 
     g_InputController.AllowControllerInterrupts(true);    // Ok for hserial again...
 }
 
-
-
-// TODO: finish
-void ServoDriver::OutputServoInfoForMandibles(short xRot, short yRot, short zRot)
+void ServoDriver::OutputServoInfoForMandibles(short xRot, short yRot, short zRot, short lRot, short rRot)
 {
   word    wXRotSSCV;
   word    wYRotSSCV;
   word    wZRotSSCV;
-  
+  word    wLRotSSCV;  
+  word    wRRotSSCV;
+
   // Disable interrupts
   g_InputController.AllowControllerInterrupts(false);
   
@@ -269,6 +268,8 @@ void ServoDriver::OutputServoInfoForMandibles(short xRot, short yRot, short zRot
    wXRotSSCV = ((long)(-xRot +900))*1000/cPwmDiv+cPFConst;
    wYRotSSCV = ((long)(-yRot +900))*1000/cPwmDiv+cPFConst;
    wZRotSSCV = ((long)(-zRot +900))*1000/cPwmDiv+cPFConst;
+   wLRotSSCV = ((long)(lRot +900))*1000/cPwmDiv+cPFConst;
+   wRRotSSCV = ((long)(-rRot +900))*1000/cPwmDiv+cPFConst;
    
 // Do some writing 
 #ifdef cSSC_BINARYMODE
@@ -283,6 +284,16 @@ void ServoDriver::OutputServoInfoForMandibles(short xRot, short yRot, short zRot
     SSCSerial.write((byte)cManYawPin + 0x80);
     SSCSerial.write(wYRotSSCV >> 8 );
     SSCSerial.write(wYRotSSCV & 0xff);
+
+    SSCSerial.print((byte)cManYawPin + 0x80);
+    SSCSerial.print((byte)cMandLeftPin, DEC);
+    SSCSerial.print(wLRotSSCV >> 8 );
+    SSCSerial.print(wLRotSSCV & 0xff);
+
+    SSCSerial.print((byte)cManYawPin + 0x80);
+    SSCSerial.print((byte)cMandRightPin, DEC);
+    SSCSerial.print(wRRotSSCV >> 8 );
+    SSCSerial.print(wRRotSSCV & 0xff);
 #else
     SSCSerial.print("#");
     SSCSerial.print((byte)cManRollPin, DEC);
@@ -299,6 +310,16 @@ void ServoDriver::OutputServoInfoForMandibles(short xRot, short yRot, short zRot
     SSCSerial.print("P");
     SSCSerial.print(wYRotSSCV, DEC);
 
+    SSCSerial.print("#");
+    SSCSerial.print((byte)cMandLeftPin, DEC);
+    SSCSerial.print("P");
+    SSCSerial.print(wLRotSSCV, DEC);
+
+    SSCSerial.print("#");
+    SSCSerial.print((byte)cMandRightPin, DEC);
+    SSCSerial.print("P");
+    SSCSerial.print(wRRotSSCV, DEC);
+
 #endif  
 
   // Re-enable interrupts
@@ -309,35 +330,35 @@ void ServoDriver::OutputServoInfoForMandibles(short xRot, short yRot, short zRot
 //[Tail Servo Driver] Controls the tail servo motors 
 //Requires pins configuration for pan and raise servos for the tail
 //-------------------------------------------------------------------
-void ServoDriver::OutputServoInfoForTails(short yRot, short zRot)
+void ServoDriver::OutputServoInfoForTails(short xRot, short yRot)
 {
+  word    wXRotSSCV;
   word    wYRotSSCV;
-  word    wZRotSSCV;
   
   // Disable interrupts
   g_InputController.AllowControllerInterrupts(false);
   
   // Set up words
-   wYRotSSCV = ((long)(-yRot +900))*1000/cPwmDiv+cPFConst;
-   wZRotSSCV = ((long)(-zRot +900))*1000/cPwmDiv+cPFConst;
-   
+  wXRotSSCV = ((long)(-xRot +900))*1000/cPwmDiv+cPFConst;
+  wYRotSSCV = ((long)(-yRot +900))*1000/cPwmDiv+cPFConst;
+
 // Do some writing 
 #ifdef cSSC_BINARYMODE
     SSCSerial.write((byte)ctailPanPin + 0x80);
-    SSCSerial.write(wZRotSSCV >> 8 );
-    SSCSerial.write(wZRotSSCV & 0xff);
+    SSCSerial.write(wXRotSSCV >> 8 );
+    SSCSerial.write(wXRotSSCV & 0xff);
     
     SSCSerial.write((byte)ctailPitchPin + 0x80);
     SSCSerial.write(wYRotSSCV >> 8 );
     SSCSerial.write(wYRotSSCV & 0xff);
 #else
     SSCSerial.print("#");
-    SSCSerial.print((byte)ctailPitchPin, DEC);
-    SSCSerial.print("P");
-    SSCSerial.print(wZRotSSCV, DEC);
-    
-    SSCSerial.print("#");
     SSCSerial.print((byte)ctailPanPin, DEC);
+    SSCSerial.print("P");
+    SSCSerial.print(wXRotSSCV, DEC);
+
+    SSCSerial.print("#");
+    SSCSerial.print((byte)ctailPitchPin, DEC);
     SSCSerial.print("P");
     SSCSerial.print(wYRotSSCV, DEC);
 
@@ -575,13 +596,13 @@ void ServoDriver::FindServoOffsets()
 		// direct enter of which servo to change
 		fNew = true;
 		sSN = (sSN % NUMSERVOSPERLEG) + (data - '0')*NUMSERVOSPERLEG;
-	    } else if ((data == 'c') && (data == 'C')) {
-		fNew = true;
-		sSN = (sSN / NUMSERVOSPERLEG) * NUMSERVOSPERLEG + 0;
-	    } else if ((data == 'c') && (data == 'C')) {
-		fNew = true;
-		sSN = (sSN / NUMSERVOSPERLEG) * NUMSERVOSPERLEG + 1;
-	    } else if ((data == 'c') && (data == 'C')) {
+	    } else if ((data == 'c') || (data == 'C')) {
+            fNew = true;
+            sSN = (sSN / NUMSERVOSPERLEG) * NUMSERVOSPERLEG + 0;
+	    } else if ((data == 'f') || (data == 'F')) {
+            fNew = true;
+            sSN = (sSN / NUMSERVOSPERLEG) * NUMSERVOSPERLEG + 1;
+	    } else if ((data == 't') || (data == 'T')) {
 		// direct enter of which servo to change
 		fNew = true;
 		sSN = (sSN / NUMSERVOSPERLEG) * NUMSERVOSPERLEG + 2;

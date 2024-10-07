@@ -7,9 +7,10 @@
 //Recommended Microcontroller: BotBoarduino by Lynxmotion
 //Recommended Servocontroller: SSC-32 Channel PWM SC by Lynxmotion
 //Recommended Control Systems: PS2 or custom XBee controller
-//Software Version: 4.0
-//Last Updated Date: April 10th 2015 
-//Programmers:  Eric Shi (tronicsos) (Implemented 24 DoF Apod Hexapod code)
+//Software Version: 4.1
+//Last Updated Date: October 5th 2024 
+//Programmers:  Shane Easton (GravityDeficient) (Implimented Mandible and Tail code)
+//              Eric Shi (tronicsos) (Implemented 24 DoF Apod Hexapod code)
 //              Jeroen Janssen [aka Xan]
 //              Kurt Eckhardt(KurtE) converted to C and Arduino
 //
@@ -631,9 +632,8 @@ void StartUpdateServos()
 #endif      
     }
     
-    g_ServoDriver.OutputServoInfoForMandibles(g_InControlState.ManPos.x, g_InControlState.ManPos.y, g_InControlState.ManPos.z);
+    g_ServoDriver.OutputServoInfoForMandibles(g_InControlState.ManPos.x, g_InControlState.ManPos.y, g_InControlState.ManPos.z, g_InControlState.ManClos.x, g_InControlState.ManClos.y);
     g_ServoDriver.OutputServoInfoForTails(g_InControlState.TailPos.x, g_InControlState.TailPos.y);
-    // g_ServoDriver.OutputServoInfoForTails(35,-750);
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -700,7 +700,7 @@ bool CheckVoltage() {
  
  
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-//[SINGLE LEG CONTROL]
+//[SINGLE LEG CONTROL]n
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SingleLegControl(void)
 {
@@ -725,10 +725,11 @@ void SingleLegControl(void)
                 LegPosY[PrevSelectedLeg] = (short)pgm_read_word(&cInitPosY[PrevSelectedLeg]);
                 LegPosZ[PrevSelectedLeg] = (short)pgm_read_word(&cInitPosZ[PrevSelectedLeg]);
             }
-        } else if (!g_InControlState.fSLHold) {
-            MandibleControl();
-            TailControl();
         }
+        //  else if (!g_InControlState.fSLHold) {
+            // MandibleControl();
+            // TailControl();
+        // }
     } else {//All legs to init position
         if (!AllDown) {
             for(LegIndex = 0; LegIndex <= 5;LegIndex++) {
@@ -743,7 +744,7 @@ void SingleLegControl(void)
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-//[Mandible CONTROL]
+//[Mandible CONTROL]-- Im unsure if this is even needed
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MandibleControl(void)
 {
@@ -753,7 +754,7 @@ void MandibleControl(void)
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-//[Tail CONTROL]
+//[Tail CONTROL]-- Im unsure if this is even needed
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void TailControl(void)
 {
@@ -1163,7 +1164,7 @@ void BodyFK (short PosX, short PosZ, short PosY, short RotationY, byte BodyIKLeg
     short            CosB4;          //Cos buffer for BodyRotX calculations
     short            SinG4;          //Sin buffer for BodyRotZ calculations
     short            CosG4;          //Cos buffer for BodyRotZ calculations
-    short             CPR_X;            //Final X value for centerpoint of rotation
+    short            CPR_X;            //Final X value for centerpoint of rotation
     short            CPR_Y;            //Final Y value for centerpoint of rotation
     short            CPR_Z;            //Final Z value for centerpoint of rotation
 
