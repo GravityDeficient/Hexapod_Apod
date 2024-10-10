@@ -223,7 +223,7 @@ void InputController::ControlInput(void)
                     if (ControlMode != SINGLELEGMODE) {
                         ControlMode = SINGLELEGMODE;
                             if (g_InControlState.SelectedLeg == 255)  //Select leg if none is selected
-                                g_InControlState.SelectedLeg = MANDIBLE_INDEX; //Startleg
+                                g_InControlState.SelectedLeg = 6; //Startleg
                     } else {
                         ControlMode = WALKMODE;
                         g_InControlState.SelectedLeg=255;
@@ -379,18 +379,18 @@ void InputController::ControlInput(void)
                 // Check if the Mandible is selected (index 6)
                 if (g_InControlState.SelectedLeg == MANDIBLE_INDEX) {
                     if (ps2x.Button(PSB_R1)) { // R1 Button Test
-                        g_InControlState.ManClos.x += 10;  // Increment by a smaller amount
+                        g_InControlState.ManClos.x += 100;  // Increment by a smaller amount
                         if (g_InControlState.ManClos.x > cMandLeftMAX1)  // Set a reasonable upper limit based on the range
                             g_InControlState.ManClos.x = cMandLeftMAX1;
-                        g_InControlState.ManClos.y += 10;  // Increment by a smaller amount
+                        g_InControlState.ManClos.y += 100;  // Increment by a smaller amount
                         if (g_InControlState.ManClos.y > cMandRightMAX1)  // Set a reasonable upper limit based on the range
                             g_InControlState.ManClos.y = cMandRightMAX1;
                     }
                     if (ps2x.Button(PSB_L1)) { // L1 Button Test
-                        g_InControlState.ManClos.x -= 10;  // Decrement by a smaller amount
+                        g_InControlState.ManClos.x -= 100;  // Decrement by a smaller amount
                         if (g_InControlState.ManClos.x < cMandLeftMIN1)  // Set a reasonable lower limit based on the range
                             g_InControlState.ManClos.x = cMandLeftMIN1;
-                        g_InControlState.ManClos.y -= 10;  // Decrement by a smaller amount
+                        g_InControlState.ManClos.y -= 100;  // Decrement by a smaller amount
                         if (g_InControlState.ManClos.y < cMandRightMIN1)  // Set a reasonable lower limit based on the range
                             g_InControlState.ManClos.y = cMandRightMIN1;
                     }
@@ -403,6 +403,7 @@ void InputController::ControlInput(void)
                     
                     g_InControlState.ManPos.z = (ps2x.Analog(PSS_LX) - 128) * 2; // Left stick left/right; mandible rotate CCW/CW
                 } else {
+
                     g_InControlState.SLLeg.x= (ps2x.Analog(PSS_LX) - 128) / 2; //Left Stick Right/Left
                     g_InControlState.SLLeg.y= (ps2x.Analog(PSS_RY) - 128) / 10; //Right Stick Up/Down
                     g_InControlState.SLLeg.z = (ps2x.Analog(PSS_LY) - 128) / 2; //Left Stick Up/Down

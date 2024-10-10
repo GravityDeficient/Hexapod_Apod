@@ -700,7 +700,7 @@ bool CheckVoltage() {
  
  
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-//[SINGLE LEG CONTROL]n
+//[SINGLE LEG CONTROL]
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SingleLegControl(void)
 {
@@ -726,10 +726,13 @@ void SingleLegControl(void)
                 LegPosZ[PrevSelectedLeg] = (short)pgm_read_word(&cInitPosZ[PrevSelectedLeg]);
             }
         }
-        //  else if (!g_InControlState.fSLHold) {
-            // MandibleControl();
-            // TailControl();
-        // }
+         else if (!g_InControlState.fSLHold) {
+            LegPosY[g_InControlState.SelectedLeg] = LegPosY[g_InControlState.SelectedLeg]+g_InControlState.SLLeg.y;
+            LegPosX[g_InControlState.SelectedLeg] = (short)pgm_read_word(&cInitPosX[g_InControlState.SelectedLeg])+g_InControlState.SLLeg.x;
+            LegPosZ[g_InControlState.SelectedLeg] = (short)pgm_read_word(&cInitPosZ[g_InControlState.SelectedLeg])+g_InControlState.SLLeg.z;  
+            MandibleControl();
+            TailControl();
+        }
     } else {//All legs to init position
         if (!AllDown) {
             for(LegIndex = 0; LegIndex <= 5;LegIndex++) {
@@ -1415,8 +1418,9 @@ void MSound(uint8_t _pin, byte cNotes, ...)
 boolean TerminalMonitor(void)
 {
     byte szCmdLine[5];  // currently pretty simple command lines...
-    int ich;
-    int ch;
+    int ich; // first available character
+    int ch; // current character read
+    
     // See if we need to output a prompt.
     if (g_fShowDebugPrompt) {
         DBGSerial.println("Arduino Phoenix Monitor");
@@ -1442,9 +1446,8 @@ boolean TerminalMonitor(void)
              szCmdLine[ich] = ch;
         }
         szCmdLine[ich] = '\0';    // go ahead and null terminate it...
-        DBGSerial.print("Serial Cmd Line:");        
+        DBGSerial.print("> ");        
         DBGSerial.write(szCmdLine, ich);
-        DBGSerial.println("!!!");
         
         // So see what are command is.
         if (ich == 0) {
